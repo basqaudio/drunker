@@ -5,7 +5,7 @@
               projectType="audioplug" pluginAUIsSandboxSafe="1" pluginManufacturer="BASQ AUDIO"
               pluginFormats="buildVST3,buildAU,buildStandalone" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut,pluginIsMidiEffectPlugin"
               useAppConfig="0" addUsingNamespaceToJuceHeader="1" id="D7IqJ1"
-              jucerFormatVersion="1" pluginCode="Druk" pluginManufacturerCode="BASQ">
+              jucerFormatVersion="1" pluginCode="Druk" pluginManufacturerCode="Basq">
   <MAINGROUP id="Jvc8Cw" name="Drunker">
     <GROUP id="{05442A89-0D43-595E-7207-090E634C87D9}" name="Resources">
       <FILE id="S5KD3m" name="lockoffgrid_lock.png" compile="0" resource="1"

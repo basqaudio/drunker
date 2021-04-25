@@ -25,8 +25,8 @@
 
  name:                  Drunken
  version:               1.0.0
- vendor:                Babish
- website:               http://juce.com
+ vendor:                BASQ AUDIO
+ website:               http://basqaudio.com
  description:           Arpeggiator audio plugin.
 
  dependencies:          juce_audio_basics, juce_audio_devices, juce_audio_formats,
