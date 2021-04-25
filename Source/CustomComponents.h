@@ -328,6 +328,7 @@ private:
 public:
     HBox(const MarginPaddingSystem& mps) : _mps(mps) {}
     HBox(SafePointer<Component> c, const MarginPaddingSystem& mps) : _mps(mps) { addItem(c); }
+    HBox(SafePointer<Component> c, const MarginPaddingSystem& mps, int borderDirection, Colour borderColour) : _mps(mps) { addItem(c); setBorder(borderDirection, borderColour); }
     virtual ~HBox(){
         for(int i = 0; i < _items.size(); ++i){
             _items[i].c.deleteAndZero();

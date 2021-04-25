@@ -155,8 +155,6 @@ public:
     void paint (Graphics& g) override {
         Image image = juce::ImageCache::getFromMemory (BinaryData::dand_icon_png, BinaryData::dand_icon_pngSize);
 
-        g.setColour(Colours::lightgrey);
-        g.fillRect(getLocalBounds());
         g.drawImage(image, getLocalBounds().reduced(10).toFloat());
     }
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PatternDnDComponent)
@@ -738,7 +736,7 @@ class UpperBar : public Component
 public:
     UpperBar(ParameterManager& pm, SequenceDrummer& drummer) : _sd(drummer), _pm(pm){
         setName("UpperBar");
-        _dndArea.reset(new PatternDnDComponent(drummer));
+        _dndArea.reset(new HBox(new PatternDnDComponent(drummer),{1,1},HBox::LEFT,ColourParam::upViewBoundColour));
 
         
         // Left
