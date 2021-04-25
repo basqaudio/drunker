@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT name="Drunker" companyName="Babish" version="1.0.0" userNotes="Arpeggiator audio plugin."
-              companyWebsite="http://juce.com" displaySplashScreen="1" defines="PIP_JUCE_EXAMPLES_DIRECTORY=L1VzZXJzL2JhYmEvSlVDRS92Ni4wLjcvZXhhbXBsZXM="
-              projectType="audioplug" pluginAUIsSandboxSafe="1" pluginManufacturer="Babish"
+<JUCERPROJECT name="Drunker" companyName="BASQ AUDIO" version="1.0.0" companyWebsite="http://basqaudio.com"
+              displaySplashScreen="1" defines="PIP_JUCE_EXAMPLES_DIRECTORY=L1VzZXJzL2JhYmEvSlVDRS92Ni4wLjcvZXhhbXBsZXM="
+              projectType="audioplug" pluginAUIsSandboxSafe="1" pluginManufacturer="BASQ AUDIO"
               pluginFormats="buildVST3,buildAU,buildStandalone" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut,pluginIsMidiEffectPlugin"
               useAppConfig="0" addUsingNamespaceToJuceHeader="1" id="D7IqJ1"
-              jucerFormatVersion="1" pluginCode="Druk" pluginManufacturerCode="Bish">
+              jucerFormatVersion="1" pluginCode="Druk" pluginManufacturerCode="BASQ">
   <MAINGROUP id="Jvc8Cw" name="Drunker">
     <GROUP id="{05442A89-0D43-595E-7207-090E634C87D9}" name="Resources">
       <FILE id="S5KD3m" name="lockoffgrid_lock.png" compile="0" resource="1"
