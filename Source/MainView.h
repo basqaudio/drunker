@@ -435,7 +435,7 @@ public:
                 newEntry._note = note;
                 newEntry._pos = gridPos;
                 newEntry._nudge = 0;
-                newEntry._vel = 127;
+                newEntry._vel = _pm.getFloat(ParameterManager::VELOCITY_PARAM);
                 newEntry._duration = Durations::BEAT32;
                 auto selSeqItr = seq.insert(SequenceDrummer::SeqStoragePair(newEntry._pos,newEntry));
                 
