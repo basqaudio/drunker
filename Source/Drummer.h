@@ -292,28 +292,30 @@ public:
         {
             Sequence* seq = &_seq;
             
-            /// Prorcess Input MIDI messages
-            updateUI = false;
-            for (const MidiMessageMetadata metadata : midi){
-                auto m = metadata.getMessage();
-                if(m.isNoteOn()){
-                    _noteOnsForRec[m.getNoteNumber()] = {metadata.samplePosition + time_now, m.getVelocity(), true}; // samplePosition in metadata is the offset from the start of this block. See help for getTimeStampgetTimeStamp of the MidiMessage class.
-                }else if(m.isNoteOff()){
-                    // Search corresponding note ON
-                    int note = m.getNoteNumber();
-                    if( _noteOnsForRec[note]._valid ){
-                        int64 durationSamples = (metadata.samplePosition + time_now) - _noteOnsForRec[note]._scheduleTime;
-                        SequenceDrummer::SequenceEntry newEntry;
-                        newEntry._note = note;
-                        newEntry._pos = mod( asDuration(_noteOnsForRec[note]._scheduleTime, bpm_now), seq->getLength() );
-                        newEntry._nudge = 0;
-                        newEntry._vel = _noteOnsForRec[note]._onVel;
-                        newEntry._duration = asDuration(durationSamples, bpm_now);
-                        seq->insert(SequenceDrummer::SeqStoragePair(newEntry._pos,newEntry));
-                        _noteOnsForRec[note]._valid = false;
-                        updateUI = true;
-                    }else{
-                        // Invalid states
+            if(_pm.getBool(ParameterManager::RECORD_PARAM)){
+                /// Prorcess Input MIDI messages
+                updateUI = false;
+                for (const MidiMessageMetadata metadata : midi){
+                    auto m = metadata.getMessage();
+                    if(m.isNoteOn()){
+                        _noteOnsForRec[m.getNoteNumber()] = {metadata.samplePosition + time_now, m.getVelocity(), true}; // samplePosition in metadata is the offset from the start of this block. See help for getTimeStampgetTimeStamp of the MidiMessage class.
+                    }else if(m.isNoteOff()){
+                        // Search corresponding note ON
+                        int note = m.getNoteNumber();
+                        if( _noteOnsForRec[note]._valid ){
+                            int64 durationSamples = (metadata.samplePosition + time_now) - _noteOnsForRec[note]._scheduleTime;
+                            SequenceDrummer::SequenceEntry newEntry;
+                            newEntry._note = note;
+                            newEntry._pos = mod( asDuration(_noteOnsForRec[note]._scheduleTime, bpm_now), seq->getLength() );
+                            newEntry._nudge = 0;
+                            newEntry._vel = _noteOnsForRec[note]._onVel;
+                            newEntry._duration = asDuration(durationSamples, bpm_now);
+                            seq->insert(SequenceDrummer::SeqStoragePair(newEntry._pos,newEntry));
+                            _noteOnsForRec[note]._valid = false;
+                            updateUI = true;
+                        }else{
+                            // Invalid states
+                        }
                     }
                 }
             }
