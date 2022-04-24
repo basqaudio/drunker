@@ -231,6 +231,8 @@ public:
     static const int HZOOM_PARAM = 5;
     static const int PLAYSTOP_PARAM = 6;
     static const int TEMPO_PARAM = 7;
+    static const int RECORD_PARAM = 8;
+    
     
 
     int SEQ_TRACK_PARAM(int trackId, int paramId){ return trackId * 5 + paramId + 100; }

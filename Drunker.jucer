@@ -16,6 +16,8 @@
       <FILE id="CpLrkA" name="play.png" compile="0" resource="1" file="Material/play.png"/>
       <FILE id="D6kJ6F" name="stop.png" compile="0" resource="1" file="Material/stop.png"/>
       <FILE id="OjGVDw" name="pause.png" compile="0" resource="1" file="Material/pause.png"/>
+      <FILE id="eaHRQl" name="recoff.png" compile="0" resource="1" file="Material/recoff.png"/>
+      <FILE id="i19vsG" name="recon.png" compile="0" resource="1" file="Material/recon.png"/>
     </GROUP>
     <GROUP id="{D6EBA1C0-C5CC-3004-BBBD-127744574789}" name="Source">
       <FILE id="u0b1zk" name="Bridge.h" compile="0" resource="0" file="Source/Bridge.h"/>

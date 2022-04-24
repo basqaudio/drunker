@@ -55,6 +55,9 @@ DrunkerProcessor::DrunkerProcessor()
         _paramMan->addParam(new AudioParameterBool("PlayStop","playStop", true), ParameterManager::PLAYSTOP_PARAM, true);
     }
     {
+        _paramMan->addParam(new AudioParameterBool("Record","record", false), ParameterManager::RECORD_PARAM, true);
+    }
+    {
         NormalisableRange<float> nr(5,990,0.0001);
         _paramMan->addParam(new AudioParameterFloat("Tempo","tempo", nr, InternalParam::defaultTempo), ParameterManager::TEMPO_PARAM, true);
     }
@@ -91,7 +94,10 @@ void DrunkerProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& mid
     AudioPlayHead::CurrentPositionInfo cp;
     ph->getCurrentPosition(cp);
 
-    midi.clear();
+    for (const MidiMessageMetadata metadata : midi)
+        if (metadata.numBytes == 3)
+            Logger::writeToLog (metadata.getMessage().getDescription());
+    //midi.clear();
     _drummer->processBlock(numSamples, cp, midi);
 
 }

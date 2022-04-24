@@ -243,9 +243,10 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ImageToggleButton)
 };
 
-class PlayControl : public Component, public IIncludeLabel, public IIncludeButton
+class PlayControl : public Component, public IIncludeLabel
 {
     SafePointer<ImageToggleButton> _playBtn;
+    SafePointer<ImageToggleButton> _recBtn;
     SafePointer<Label> _tempoLabel;
     SafePointer<Label> _bpm;
     
@@ -255,6 +256,11 @@ public:
         Image playImage = juce::ImageCache::getFromMemory (BinaryData::play_png, BinaryData::play_pngSize);
         Image stopImage = juce::ImageCache::getFromMemory (BinaryData::stop_png, BinaryData::stop_pngSize);
         _playBtn = new ImageToggleButton(playImage, stopImage);
+        
+        Image recoffImage = juce::ImageCache::getFromMemory (BinaryData::recoff_png, BinaryData::recoff_pngSize);
+        Image reconImage  = juce::ImageCache::getFromMemory (BinaryData::recon_png,  BinaryData::recon_pngSize);
+        _recBtn = new ImageToggleButton(recoffImage, reconImage);
+
         _tempoLabel = new Label();
         _tempoLabel->setText("100.0", NotificationType::dontSendNotification);
         _tempoLabel->setJustificationType(Justification::centred);
@@ -266,22 +272,27 @@ public:
         _bpm->setEditable(false);
         
         addAndMakeVisible(_playBtn);
+        addAndMakeVisible(_recBtn);
         addAndMakeVisible(_tempoLabel);
         addAndMakeVisible(_bpm);
         
     }
     virtual ~PlayControl(){
         _playBtn.deleteAndZero();
+        _recBtn.deleteAndZero();
         _tempoLabel.deleteAndZero();
         _bpm.deleteAndZero();
     }
     virtual void resized() override {
         Rectangle<int> lb = getLocalBounds();
         Rectangle<int> contentBox = _mps.getContentBox(lb);
-        Rectangle<int> playBtnRect = removeFromLeftRatio(contentBox, 0.2);
+        int w = contentBox.getWidth();
+        Rectangle<int> playBtnRect = contentBox.removeFromLeft(w*0.2);
+        Rectangle<int> recBtnRect  = contentBox.removeFromLeft(w*0.2);
         Rectangle<int> bpmValueRect = removeFromLeftRatio(contentBox, 0.5);
         
         _playBtn->setBounds(playBtnRect.reduced(2));
+        _recBtn->setBounds(recBtnRect.reduced(2));
         _tempoLabel->setBounds(bpmValueRect.reduced(2));
         _bpm->setBounds(contentBox.reduced(2));
     }
@@ -296,7 +307,8 @@ public:
     }
 
     virtual Label* getLabel() override { return _tempoLabel; }
-    virtual Button* getButton() override { return _playBtn; }
+    virtual Button* getPlayButton() { return _playBtn; }
+    virtual Button* getRecButton(){ return _recBtn; }
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlayControl)
 };
 

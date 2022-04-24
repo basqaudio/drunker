@@ -728,6 +728,7 @@ class UpperBar : public Component
     std::unique_ptr<ZoomSlider> _hzoomNob;
     std::unique_ptr<SliderBridge> _hzoomSliderBridge;
     std::unique_ptr<IButtonBridge> _playBtnBridge;
+    std::unique_ptr<IButtonBridge> _recBtnBridge;
     SafePointer<PlayControl> _playCont;
     ViewZoomSlider _viewZoomSlierLF;
     ParamController _paramControllerLF;
@@ -769,8 +770,11 @@ public:
             };
             _playCont = new PlayControl();
             addAndMakeVisible(_playCont);
-            AudioParameterBool* p = pm.getBoolParam(ParameterManager::PLAYSTOP_PARAM);
-            _playBtnBridge.reset(new ImageToggleButtonBridge(p, dynamic_cast<ImageToggleButton*>(_playCont->getButton()), cb));
+            AudioParameterBool* pp = pm.getBoolParam(ParameterManager::PLAYSTOP_PARAM);
+            _playBtnBridge.reset(new ImageToggleButtonBridge(pp, dynamic_cast<ImageToggleButton*>(_playCont->getPlayButton()), cb));
+
+            AudioParameterBool* pr = pm.getBoolParam(ParameterManager::RECORD_PARAM);
+            _recBtnBridge.reset(new ImageToggleButtonBridge(pr, dynamic_cast<ImageToggleButton*>(_playCont->getRecButton()), cb));
 
             AudioParameterFloat* pt = pm.getFloatParam(ParameterManager::TEMPO_PARAM);
             new FloatLabelBridge(pt, _playCont->getLabel());

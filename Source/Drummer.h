@@ -165,9 +165,6 @@ public:
         // Lock-free read
         Duration getLength() const { return _length.load(); }
         
-        //int _note;
-        Duration _delay = 0; // no longer used.
-        
         // This is not a pure core data, but required for the GUI.
         Duration _gridIntervalDuration;
         
@@ -290,11 +287,10 @@ public:
         int64 seqLengthSamples = asSamples(seq->getLength(), bpm_now);
         
         // If start time is within this block, then schedule
-        int64 delaySamples = asSamples(seq->_delay, bpm_now);
-        int64 time = time_now - delaySamples; // can be nagative !
-        int localTimeSamples = static_cast<int>(mod(time, seqLengthSamples)); // assume int64 is no longer needed. pattern local time.
+        //int64 time = time_now; // can be nagative !
+        int localTimeSamples = static_cast<int>(mod(time_now, seqLengthSamples)); // assume int64 is no longer needed. pattern local time.
         
-        Duration timeDuration = asDuration(time_now, bpm_now) - seq->_delay;
+        Duration timeDuration = asDuration(time_now, bpm_now);
         Duration localTimeDurations = mod(timeDuration, seq->getLength());
         Duration blockSizeDurations = asDuration(blockSize, bpm_now);
         Duration localEndTimeDurations = mod(localTimeDurations + blockSizeDurations, seq->getLength());
@@ -303,7 +299,7 @@ public:
         
         std::set<NoteOff>::iterator offit = _noteOffs.begin();
         while(offit != _noteOffs.end()){
-            int64 offset = offit->_scheduleTime - time;
+            int64 offset = offit->_scheduleTime - time_now;
             if(offset < blockSize){ // incl. negative(i.e. passed one...)
                 midi.addEvent (MidiMessage::noteOff  (1, offit->note), jmax(0, static_cast<int>(offset)));
                 offit = _noteOffs.erase(offit);
@@ -340,7 +336,7 @@ public:
                         midi.addEvent (MidiMessage::noteOff  (1, e._note), static_cast<int>(offset + noteDurationSamples));
                     }else{
                         // remember it in the NoteOff Buffer
-                        _noteOffs.insert({time + offset + noteDurationSamples, e._note});
+                        _noteOffs.insert({time_now + offset + noteDurationSamples, e._note});
                     }
                 }
                 ++it;
