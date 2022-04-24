@@ -291,9 +291,9 @@ public:
         int localTimeSamples = static_cast<int>(mod(time_now, seqLengthSamples)); // assume int64 is no longer needed. pattern local time.
         
         Duration timeDuration = asDuration(time_now, bpm_now);
-        Duration localTimeDurations = mod(timeDuration, seq->getLength());
+        Duration localStartTimeDurations = mod(timeDuration, seq->getLength());
         Duration blockSizeDurations = asDuration(blockSize, bpm_now);
-        Duration localEndTimeDurations = mod(localTimeDurations + blockSizeDurations, seq->getLength());
+        Duration localEndTimeDurations = mod(localStartTimeDurations + blockSizeDurations, seq->getLength()); // can be in the head of next loop
         
         // Firstly, sendNote Off
         
@@ -309,11 +309,11 @@ public:
         }
         
         SeqStorageCItr its[2][2];
-        its[0][0] = seq->getStorage().lower_bound(localTimeDurations);
-        its[0][1] = localEndTimeDurations > localTimeDurations ?
+        its[0][0] = seq->getStorage().lower_bound(localStartTimeDurations);
+        its[0][1] = localEndTimeDurations > localStartTimeDurations ?
             seq->getStorage().upper_bound(localEndTimeDurations) :
             seq->getStorage().lower_bound(seq->getLength()); // As we should not use the note with pos = seq->_length, use lower limit on purpose.
-        if(localEndTimeDurations > localTimeDurations){
+        if(localEndTimeDurations > localStartTimeDurations){
             its[1][0] = its[1][1] = seq->getStorage().end(); // No need to consider
         }else{
             its[1][0] = seq->getStorage().begin();
