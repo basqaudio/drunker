@@ -17,7 +17,7 @@
 
 class DrunkerProcessor;
 
-class DrunkerEditor  : public AudioProcessorEditor
+class DrunkerEditor  : public AudioProcessorEditor, public ChangeListener
 {
 public:
     //==============================================================================
@@ -29,6 +29,8 @@ public:
     void paint (Graphics&) override ;
     void resized() override;
     
+    virtual void changeListenerCallback(ChangeBroadcaster* source) override;
+
 private:
     Component::SafePointer<MainView> _mainView;
     Component::SafePointer<Component> _upperBar;

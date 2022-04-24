@@ -62,6 +62,11 @@ void DrunkerEditor::resized()  {
     }
 }
 
+void DrunkerEditor::changeListenerCallback(ChangeBroadcaster* source)
+{
+    repaint();
+}
+
 
 void PatternDnDComponent::mouseDown(const MouseEvent &event){
 

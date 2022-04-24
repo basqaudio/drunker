@@ -49,7 +49,7 @@ public:
     }
     
     virtual void processBlock(int blockSize, const AudioPlayHead::CurrentPositionInfo& cp,
-                              MidiBuffer& midi) = 0;
+                              MidiBuffer& midi, bool& updateUI) = 0;
 
     inline int64 asSamples(Duration duration, double bpm) const {
         return static_cast<int64>(_fs / bpm * 60 * duration / Durations::BEAT4);
@@ -218,6 +218,15 @@ protected:
     
     std::multiset<NoteOff> _noteOffs; // shall be multiset as multiple off will be scheuled at the same timing
     
+    // Current on information during recording
+    struct ScheduleTime{
+        int64 _scheduleTime;
+        uint8 _onVel;
+        bool _valid;
+    };
+    ScheduleTime _noteOnsForRec[128];
+    
+    
     // Serialize target GUI data
     bool _lockOffGrid = true;
     
@@ -241,6 +250,8 @@ public:
         _seq._seq.insert({_map.bs, Durations::BEAT4*3, 0, Durations::BEAT16, 127});
         _seq._seq.insert({_map.snare, Durations::BEAT4*3, 0, Durations::BEAT16, 127});
          */
+        
+        for(int i = 0; i < 128; ++i) _noteOnsForRec[i]._valid=false;
     }
     
     virtual ~SequenceDrummer(){
@@ -254,7 +265,7 @@ public:
     }
     
     virtual void processBlock(int blockSize, const AudioPlayHead::CurrentPositionInfo& cp,
-                      MidiBuffer& midi) override
+                      MidiBuffer& midi, bool& updateUI) override
     {
         if(cp.isPlaying){
             _bpm = cp.bpm;
@@ -279,72 +290,100 @@ public:
     
     
         {
-        Sequence* seq = &_seq;
-        
-        /// --- Lock Region ----
-        seq->readLock(); // Lock :(
-        
-        int64 seqLengthSamples = asSamples(seq->getLength(), bpm_now);
-        
-        // If start time is within this block, then schedule
-        //int64 time = time_now; // can be nagative !
-        int localTimeSamples = static_cast<int>(mod(time_now, seqLengthSamples)); // assume int64 is no longer needed. pattern local time.
-        
-        Duration timeDuration = asDuration(time_now, bpm_now);
-        Duration localStartTimeDurations = mod(timeDuration, seq->getLength());
-        Duration blockSizeDurations = asDuration(blockSize, bpm_now);
-        Duration localEndTimeDurations = mod(localStartTimeDurations + blockSizeDurations, seq->getLength()); // can be in the head of next loop
-        
-        // Firstly, sendNote Off
-        
-        std::set<NoteOff>::iterator offit = _noteOffs.begin();
-        while(offit != _noteOffs.end()){
-            int64 offset = offit->_scheduleTime - time_now;
-            if(offset < blockSize){ // incl. negative(i.e. passed one...)
-                midi.addEvent (MidiMessage::noteOff  (1, offit->note), jmax(0, static_cast<int>(offset)));
-                offit = _noteOffs.erase(offit);
-            }else{
-                break;
-            }
-        }
-        
-        SeqStorageCItr its[2][2];
-        its[0][0] = seq->getStorage().lower_bound(localStartTimeDurations);
-        its[0][1] = localEndTimeDurations > localStartTimeDurations ?
-            seq->getStorage().upper_bound(localEndTimeDurations) :
-            seq->getStorage().lower_bound(seq->getLength()); // As we should not use the note with pos = seq->_length, use lower limit on purpose.
-        if(localEndTimeDurations > localStartTimeDurations){
-            its[1][0] = its[1][1] = seq->getStorage().end(); // No need to consider
-        }else{
-            its[1][0] = seq->getStorage().begin();
-            its[1][1] = seq->getStorage().upper_bound(localEndTimeDurations);
-        }
-        
-        for(int s = 0; s < 2; ++s){
-            auto it = its[s][0];
-            while(it != its[s][1]){
-                const SequenceEntry& e = it->second;
-                Duration d = e._pos;
-                int64 offset = (asSamples(d, bpm_now) - localTimeSamples + seqLengthSamples) % seqLengthSamples;
-                if(offset < blockSize){
-                    // In this block !
-                    midi.addEvent (MidiMessage::noteOn   (1, e._note, e._vel), static_cast<int>(offset));
-                    
-                    int64 noteDurationSamples = asSamples(e._duration, bpm_now);
-                    if(offset + noteDurationSamples < blockSize){
-                        // Send immediately
-                        midi.addEvent (MidiMessage::noteOff  (1, e._note), static_cast<int>(offset + noteDurationSamples));
+            Sequence* seq = &_seq;
+            
+            /// Prorcess Input MIDI messages
+            updateUI = false;
+            for (const MidiMessageMetadata metadata : midi){
+                auto m = metadata.getMessage();
+                if(m.isNoteOn()){
+                    _noteOnsForRec[m.getNoteNumber()] = {metadata.samplePosition + time_now, m.getVelocity(), true}; // samplePosition in metadata is the offset from the start of this block. See help for getTimeStampgetTimeStamp of the MidiMessage class.
+                }else if(m.isNoteOff()){
+                    // Search corresponding note ON
+                    int note = m.getNoteNumber();
+                    if( _noteOnsForRec[note]._valid ){
+                        int64 durationSamples = (metadata.samplePosition + time_now) - _noteOnsForRec[note]._scheduleTime;
+                        SequenceDrummer::SequenceEntry newEntry;
+                        newEntry._note = note;
+                        newEntry._pos = mod( asDuration(_noteOnsForRec[note]._scheduleTime, bpm_now), seq->getLength() );
+                        newEntry._nudge = 0;
+                        newEntry._vel = _noteOnsForRec[note]._onVel;
+                        newEntry._duration = asDuration(durationSamples, bpm_now);
+                        seq->insert(SequenceDrummer::SeqStoragePair(newEntry._pos,newEntry));
+                        _noteOnsForRec[note]._valid = false;
+                        updateUI = true;
                     }else{
-                        // remember it in the NoteOff Buffer
-                        _noteOffs.insert({time_now + offset + noteDurationSamples, e._note});
+                        // Invalid states
                     }
                 }
-                ++it;
             }
+            
+            /// --- Lock Region ----
+            seq->readLock(); // Lock :(
+            
+            int64 seqLengthSamples = asSamples(seq->getLength(), bpm_now);
+            
+            // If start time is within this block, then schedule
+            //int64 time = time_now; // can be nagative !
+            int localTimeSamples = static_cast<int>(mod(time_now, seqLengthSamples)); // assume int64 is no longer needed. pattern local time.
+            
+            Duration timeDuration = asDuration(time_now, bpm_now);
+            Duration localStartTimeDurations = mod(timeDuration, seq->getLength());
+            Duration blockSizeDurations = asDuration(blockSize, bpm_now);
+            Duration localEndTimeDurations = mod(localStartTimeDurations + blockSizeDurations, seq->getLength()); // can be in the head of next loop
+            
+            // Firstly, sendNote Off
+            
+            std::set<NoteOff>::iterator offit = _noteOffs.begin();
+            while(offit != _noteOffs.end()){
+                int64 offset = offit->_scheduleTime - time_now;
+                if(offset < blockSize){ // incl. negative(i.e. passed one...)
+                    midi.addEvent (MidiMessage::noteOff  (1, offit->note), jmax(0, static_cast<int>(offset)));
+                    offit = _noteOffs.erase(offit);
+                }else{
+                    break;
+                }
+            }
+            
+            SeqStorageCItr its[2][2];
+            its[0][0] = seq->getStorage().lower_bound(localStartTimeDurations);
+            its[0][1] = localEndTimeDurations > localStartTimeDurations ?
+                seq->getStorage().upper_bound(localEndTimeDurations) :
+                seq->getStorage().lower_bound(seq->getLength()); // As we should not use the note with pos = seq->_length, use lower limit on purpose.
+            if(localEndTimeDurations > localStartTimeDurations){
+                its[1][0] = its[1][1] = seq->getStorage().end(); // No need to consider
+            }else{
+                its[1][0] = seq->getStorage().begin();
+                its[1][1] = seq->getStorage().upper_bound(localEndTimeDurations);
+            }
+            
+            for(int s = 0; s < 2; ++s){
+                auto it = its[s][0];
+                while(it != its[s][1]){
+                    const SequenceEntry& e = it->second;
+                    Duration d = e._pos;
+                    int64 offset = (asSamples(d, bpm_now) - localTimeSamples + seqLengthSamples) % seqLengthSamples;
+                    if(offset < blockSize){
+                        // In this block !
+                        midi.addEvent (MidiMessage::noteOn   (1, e._note, e._vel), static_cast<int>(offset));
+                        
+                        int64 noteDurationSamples = asSamples(e._duration, bpm_now);
+                        if(offset + noteDurationSamples < blockSize){
+                            // Send immediately
+                            midi.addEvent (MidiMessage::noteOff  (1, e._note), static_cast<int>(offset + noteDurationSamples));
+                        }else{
+                            // remember it in the NoteOff Buffer
+                            _noteOffs.insert({time_now + offset + noteDurationSamples, e._note});
+                        }
+                    }
+                    ++it;
+                }
+            }
+            
+            seq->readUnlock();
         }
         
-        seq->readUnlock();
-        }
+
         
         if(!cp.isPlaying){
             // Enable drum beat while not playing.

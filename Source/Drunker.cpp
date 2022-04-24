@@ -94,18 +94,20 @@ void DrunkerProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& mid
     AudioPlayHead::CurrentPositionInfo cp;
     ph->getCurrentPosition(cp);
 
-    for (const MidiMessageMetadata metadata : midi)
-        if (metadata.numBytes == 3)
-            Logger::writeToLog (metadata.getMessage().getDescription());
+    bool updateUI = false;
     //midi.clear();
-    _drummer->processBlock(numSamples, cp, midi);
-
+    _drummer->processBlock(numSamples, cp, midi, updateUI);
+    
+    if(updateUI) sendChangeMessage(); // Upate UI update asynchrnously
 }
 
 AudioProcessorEditor* DrunkerProcessor::createEditor()
 {
     //return new GenericAudioProcessorEditor (*this);
-    return new DrunkerEditor(*this);
+    
+    auto de = new DrunkerEditor(*this);
+    addChangeListener(de);
+    return de;
 }
 
 

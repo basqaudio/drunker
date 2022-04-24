@@ -54,7 +54,7 @@
 #include "DrunkerEditor.h"
 
 //==============================================================================
-class DrunkerProcessor  : public AudioProcessor
+class DrunkerProcessor  : public AudioProcessor, public ChangeBroadcaster
 {
 public:
 
