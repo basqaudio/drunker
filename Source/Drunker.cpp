@@ -130,9 +130,9 @@ void DrunkerProcessor::setStateInformation (const void* data, int sizeInBytes)
     int64 stateInfoFormatVersion = inputStream.readInt64();
     if(InternalParam::stateInfoFormatVersion != stateInfoFormatVersion){
         LOG("Non backward compatible state information detected : ", stateInfoFormatVersion, " vs ", InternalParam::stateInfoFormatVersion);
-        AlertWindow::showMessageBox(AlertWindow::AlertIconType::WarningIcon,
-            "Error",
-            FMTS("Non backward compatible state information detected : ", stateInfoFormatVersion, " vs ", InternalParam::stateInfoFormatVersion));
+        //AlertWindow::showMessageBox(AlertWindow::AlertIconType::WarningIcon,
+        //    "Error",
+        //    FMTS("Non backward compatible state information detected : ", stateInfoFormatVersion, " vs ", InternalParam::stateInfoFormatVersion));
     }else{
         _drummer->deserialize(inputStream);
         //_paramMan->deserialize(inputStream);
