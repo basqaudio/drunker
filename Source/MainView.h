@@ -1086,10 +1086,12 @@ public:
     }
     virtual ~MainView(){
         removeAllChildren();
-        _hScrollBar.deleteAndZero();
-        _vScrollBar.deleteAndZero();
+
         _timeRuler.deleteAndZero();
         _containerView.deleteAndZero();
+
+        _hScrollBar.deleteAndZero();
+        _vScrollBar.deleteAndZero();
     }
     
     void onVzoomSliderChanged(float vzoom)
