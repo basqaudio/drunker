@@ -133,6 +133,16 @@ void DrunkerProcessor::setStateInformation (const void* data, int sizeInBytes)
         //AlertWindow::showMessageBox(AlertWindow::AlertIconType::WarningIcon,
         //    "Error",
         //    FMTS("Non backward compatible state information detected : ", stateInfoFormatVersion, " vs ", InternalParam::stateInfoFormatVersion));
+        AlertWindow::showMessageBoxAsync(AlertWindow::NoIcon,
+            "Error",
+            FMTS("Non backward compatible state information detected : ", stateInfoFormatVersion, " vs ", InternalParam::stateInfoFormatVersion),
+            String(),
+            nullptr,
+            ModalCallbackFunction::create([this](int result) {
+                if (result)
+                {
+                }
+            }));
     }else{
         _drummer->deserialize(inputStream);
         //_paramMan->deserialize(inputStream);

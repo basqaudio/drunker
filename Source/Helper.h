@@ -249,9 +249,19 @@ public:
 #ifdef DEBUG
         if(uniqueId < 0 || uniqueId >= MAX_PARAMS || _wrappedParamList[uniqueId] == nullptr ){
             LOG("Error invalid paramter unique ID specified");
-            AlertWindow::showMessageBox(AlertWindow::AlertIconType::WarningIcon,
+            //AlertWindow::showMessageBox(AlertWindow::AlertIconType::WarningIcon,
+            //    "Error",
+            //    "Error invalid paramter unique ID specified");
+            AlertWindow::showMessageBoxAsync(AlertWindow::NoIcon,
                 "Error",
-                "Error invalid paramter unique ID specified");
+                "Error invalid paramter unique ID specified",
+                String(),
+                nullptr,
+                ModalCallbackFunction::create([this](int result) {
+                    if (result)
+                    {
+                    }
+                    }));
         }
         
 #endif
